@@ -10,7 +10,7 @@ app.use(express.static(__dirname));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 
-var dbUrl='mongodb+srv://user:user@cluster0-kdygx.mongodb.net/test?retryWrites=true&w=majority';
+//var dbUrl='mongodb+srv://user:user@cluster0-kdygx.mongodb.net/test?retryWrites=true&w=majority';
 
 var Message=mongoose.model('Message',{
     name:String,
@@ -44,10 +44,8 @@ app.post('/messages',(req,res)=>{
 io.on('connection',(socket)=>{
     console.log('user connected');
 })
-
-mongoose.connect(dbUrl,{ useNewUrlParser: true},(err)=>{
-    console.log('mongo db connection ',err);
-})
+//default port 27017
+mongoose.connect('mongodb://localhost/nodechat');
 
 var server=http.listen(3000,()=>{
     console.log('listening on port ', server.address().port);
