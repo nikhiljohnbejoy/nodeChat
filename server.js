@@ -10,6 +10,7 @@ app.use(express.static(__dirname));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 
+mongoose.Promise=Promise;
 //var dbUrl='mongodb+srv://user:user@cluster0-kdygx.mongodb.net/test?retryWrites=true&w=majority';
 
 var Message=mongoose.model('Message',{
@@ -30,22 +31,36 @@ app.get('/messages',(req,res)=>{
         res.send(data);
    })
 });
-app.post('/messages',(req,res)=>{
-    var message=new Message(req.body);
-    message.save((err)=>{
-        if(err)
-            sendStatus(500);
-        //messages.push(req.body);
-        io.emit('message',req.body);
-        res.sendStatus(200);
-    })
+app.post('/messages',async (req,res)=>{
+    try {
+        //throw 'shashi'
+        var message=new Message(req.body);
+    var savedMessage= await message.save();
+    
+        console.log('saved');
+        var censoredMessage= await Message.findOne({message:'badword'})
+    
+            if(censoredMessage){
+                console.log('censored words found ',censoredMessage)
+                await Message.remove({_id:censoredMessage.id});
+            }
+        else{
+            io.emit('message',req.body);
+        }
+        
+        res.sendStatus(200); 
+    } catch (error) {
+        res.sendStatus(500);
+        console.log(error);
+    }
+
     
 });
 io.on('connection',(socket)=>{
     console.log('user connected');
 })
 //default port 27017
-mongoose.connect('mongodb://localhost/nodechat');
+mongoose.connect('mongodb://localhost/nodechat',{ useNewUrlParser: true });
 
 var server=http.listen(3000,()=>{
     console.log('listening on port ', server.address().port);
